@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<title>Invoice Risk Scanner — прототип анализа инвойса</title>
+<style>
+:root { color-scheme: dark; --bg:#0b1220;--panel:#131d30;--panel2:#19263a;--line:#30405a;--text:#e9eff8;--muted:#a8b7ca;--blue:#6db0ff;--teal:#6fe0ce;--red:#ff9294;--amber:#f5cb7b; }
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at 10% -25%,#193855 0%,transparent 48%),var(--bg);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+header,.wrap{width:min(1080px,calc(100% - 32px));margin:0 auto} header{padding:35px 0 18px} .topline{display:flex;align-items:center;gap:10px;color:var(--teal);font-size:12px;font-weight:750;letter-spacing:1.4px;text-transform:uppercase} .mark{display:inline-grid;place-items:center;width:28px;height:28px;border:1px solid #3a897f;border-radius:8px;background:#13312f;color:var(--teal)} h1{font-size:clamp(27px,4.5vw,42px);letter-spacing:-.8px;margin:12px 0 7px;line-height:1.15} .sub{margin:0;color:var(--muted);max-width:790px} .cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(290px,.85fr);gap:16px} section{padding:20px;border:1px solid var(--line);background:rgba(19,29,48,.94);border-radius:16px;margin-bottom:16px;min-width:0} h2{margin:0 0 13px;font-size:18px} h3{margin:0 0 9px;font-size:15px;color:#c9d9ed} p{margin:8px 0} .small{color:var(--muted);font-size:13px} .drop{display:block;border:1.5px dashed #6686ad;border-radius:13px;background:#132439;padding:32px 16px;text-align:center;cursor:pointer;transition:.2s} .drop.drag{background:#1c3653;border-color:var(--teal)} .drop strong{display:block;font-size:17px;margin:7px 0} .drop .ico{font-size:33px;color:var(--blue)} input[type=file]{position:absolute;width:1px;height:1px;opacity:0} button,.btn{appearance:none;border:1px solid #52759b;color:#eef6ff;background:#1e3857;border-radius:10px;padding:10px 14px;font:inherit;font-weight:650;cursor:pointer} button:hover,.btn:hover{filter:brightness(1.14)} button:disabled{opacity:.45;cursor:wait} button.primary{background:#247eb6;border-color:#419bd2} button.ghost{background:transparent;border-color:var(--line);color:#d8e5f3} .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px} .field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:5px} .field select{width:100%;border:1px solid #50627c;background:#0f1b2b;color:var(--text);border-radius:9px;padding:10px;outline:none} .note{padding:10px 12px;border-left:3px solid var(--amber);background:#31291f;color:#fae3bb;border-radius:0 8px 8px 0;font-size:13px}.lightnote{padding:11px;background:#152b38;border-radius:9px;color:#bcdbdd;font-size:13px} .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap} .status{font-size:13px;font-weight:750;color:#f6d495}.pill{display:inline-block;padding:3px 8px;margin:3px 5px 3px 0;border:1px solid #426080;background:#1a2d43;border-radius:99px;font-size:12px;color:#d8e9ff} .risk{border-color:#a85f60;color:#ffc4c3;background:#38262c}.pending{border-color:#9a7740;color:#f8d79d;background:#342c22}.neutral{border-color:#4e6d87;color:#cce0eb}.riskline{border-top:1px solid var(--line);padding:12px 0}.riskline:first-child{border-top:0} .riskline strong{display:block} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kv{background:#0f1b2b;border-radius:10px;padding:11px;min-height:72px}.kv .k{color:var(--muted);font-size:12px}.kv .v{font-weight:700;overflow-wrap:anywhere;white-space:pre-wrap;margin-top:2px}.empty{color:var(--muted);font-size:13px} pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow-y:auto;background:#081323;border:1px solid var(--line);border-radius:9px;padding:12px;font:12px/1.6 ui-monospace,Consolas,monospace;color:#d5e5f4} details summary{cursor:pointer;color:var(--blue);font-weight:600;margin:10px 0} ul{padding-left:18px;margin:7px 0} li{margin:4px 0} a{color:#8dcbff} footer{color:var(--muted);padding:12px 0 40px;font-size:12px}.hidden{display:none!important} .dots{display:flex;gap:6px}.dot{width:8px;height:8px;border-radius:50%;background:#566f89}.dot.on{background:#50ccb5}.callout{padding:12px;border:1px solid #725b40;background:#312920;border-radius:10px;color:#ffe3b0;font-size:13px}.uploadrow{display:flex;flex-wrap:wrap;gap:8px}.uploadrow label{padding:9px 12px;display:inline-block;border:1px solid #4b6582;border-radius:10px;cursor:pointer;background:#182b41;font-weight:650;font-size:13px}.meta{font-size:12px;color:var(--muted);margin:6px 0} .hide-until{display:none} @media(max-width:730px){.cols{grid-template-columns:1fr}.grid2{grid-template-columns:1fr 1fr} section{padding:15px} header{padding-top:25px}.drop{padding:26px 9px}.wrap,header{width:min(100% - 24px,1080px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="topline"><span class="mark">✦</span> Invoice Risk Scanner <span style="font-weight:400;color:#8ea3b8">v0.1 · браузерный прототип</span></div>
+  <h1>Проверка инвойса на санкционные риски</h1>
+  <p class="sub">Извлечение реквизитов и кодов ТН ВЭД/HS, поиск совпадений в <em>загруженных вами</em> перечнях, объяснение результатов. Содержимое документа обрабатывается в браузере, без отправки на наш сервер.</p>
+</header>
+<main class="wrap">
+<div class="cols">
+<div>
+<section>
+  <div class="row"><h2>1. Загрузите инвойс</h2><span class="pill neutral">PDF · XLSX · CSV · TXT · фото</span></div>
+  <label class="drop" id="drop" for="invoiceInput"><span class="ico">⇧</span><strong>Выберите файл или перетащите сюда</strong><span class="small">PDF с текстом, PDF-скан, Excel, JPG, PNG, TXT, CSV · до 15 МБ</span></label>
+  <input id="invoiceInput" type="file" accept=".pdf,.xlsx,.xls,.csv,.txt,.jpg,.jpeg,.png,.webp,application/pdf,image/*" />
+  <div class="actions"><button type="button" id="demoBtn" class="ghost">Открыть учебный инвойс</button><button id="analyzeBtn" class="primary" type="button" disabled>Анализировать</button></div>
+  <p class="meta" id="filename">Файл не выбран</p>
+  <div class="field"><label for="route">Контекст проверки</label><select id="route"><option value="unspecified">Неизвестная юрисдикция / маршрут</option><option value="eu">ЕС — импорт / экспорт / платежи</option><option value="ru">Россия / ЕАЭС</option><option value="international">Международная сделка (несколько юрисдикций)</option></select></div>
+  <div class="lightnote"><strong>Приватность:</strong> файл не загружается на сервер этого инструмента. Для PDF, Excel и OCR используются библиотеки из CDN, которые загружаются через интернет. OCR выполняется локально. Не используйте реальные банковские документы без согласования с ИБ и комплаенсом.</div>
+</section>
+<section>
+  <h2>2. Подключите перечни для проверки</h2>
+  <p class="small">Прототип не содержит актуальных санкционных баз «из коробки». Чтобы увидеть совпадения, загрузите таблицы в формате CSV. Дата актуальности и юридическая применимость перечней проверяются отдельно.</p>
+  <div class="field"><label>Перечень физических / юридических лиц</label><div class="uploadrow"><label for="entityInput">Загрузить CSV лиц</label><button id="entityTemplate" class="ghost" type="button">Шаблон CSV</button></div><input id="entityInput" type="file" accept=".csv,.txt,text/csv" /><div id="entityCount" class="meta">Не загружен</div></div>
+  <div class="field"><label>Перечень товарных кодов с ограничениями</label><div class="uploadrow"><label for="goodsInput">Загрузить CSV кодов</label><button id="goodsTemplate" class="ghost" type="button">Шаблон CSV</button></div><input id="goodsInput" type="file" accept=".csv,.txt,text/csv" /><div id="goodsCount" class="meta">Не загружен</div></div>
+  <p class="small">Для лиц: <code>name;aliases;source;reference</code>. Для товаров: <code>code;source;notes</code>. Формат учебный; официальные XML/CSV поставщиков обычно требуют адаптера и привязки к редакции нормативного акта.</p>
+  <div class="actions"><button type="button" id="demoLists" class="ghost">Включить демонстрационные перечни</button></div>
+  <p class="meta" id="demoWarning">Демо-перечни вымышленные и не отражают санкции.</p>
+</section>
+<section>
+  <h2>3. Результат предварительного анализа</h2>
+  <div id="state" class="callout">Проверка ещё не выполнена. Без актуальных санкционных списков программа не может подтверждать отсутствие ограничений.</div>
+  <p id="progress" class="meta" role="status" aria-live="polite"></p>
+  <div id="results" class="hidden">
+    <div class="grid2" id="fields"></div>
+    <h3 style="margin-top:19px">Выявленные факторы риска</h3><div id="alerts"></div>
+    <h3 style="margin-top:18px">Что проверить дополнительно</h3><div id="tasks"></div>
+    <div class="actions"><button id="reportBtn" type="button" class="primary">Скачать отчёт JSON</button><button id="textBtn" type="button" class="ghost">Скопировать текст заключения</button></div>
+    <details><summary>Посмотреть извлечённый текст</summary><pre id="rawText"></pre></details>
+  </div>
+</section>
+</div>
+<div>
+<section>
+<h2>Что проверяем</h2>
+<ul>
+<li>Наименования продавца, покупателя и других участников, если они указаны.</li>
+<li>Коды ТН ВЭД, HS, CN и возможные позиции товара.</li>
+<li>Упоминания стран, валют, сумм и условий сделки.</li>
+<li>Совпадения с загруженными списками имён и кодов.</li>
+<li>Нехватку данных для окончательного решения.</li>
+</ul>
+<div class="note">Нет совпадений ≠ сделка разрешена. Санкции могут применяться по владельцам компаний, назначению товара, техническим характеристикам, маршруту, посредникам и условиям оплаты.</div>
+</section>
+<section>
+<h2>Принципы результата</h2>
+<p><span class="pill risk">Совпадение</span> Найдено точное или похожее название либо код в загруженном списке. Требуется ручная проверка.</p>
+<p><span class="pill pending">Требует проверки</span> Нет ключевой информации или нужного источника.</p>
+<p><span class="pill neutral">Не установлено</span> Прототип не может определить применимость нормы по одному инвойсу.</p>
+<p class="small">Автоматического юридического вывода «санкционный / несанкционный» в версии 0.1 нет. Программа не принимает решений о проведении платежа.</p>
+</section>
+<section>
+<h2>Официальные источники</h2>
+<p class="small"><a href="https://finance.ec.europa.eu/eu-and-world/sanctions-restrictive-measures/overview-sanctions-and-related-resources_en" target="_blank" rel="noopener noreferrer">Еврокомиссия — санкции и сводные списки</a></p>
+<p class="small"><a href="https://eur-lex.europa.eu/eli/reg/2014/833/oj" target="_blank" rel="noopener noreferrer">ЕС — Регламент 833/2014 и приложения</a></p>
+<p class="small"><a href="https://ofac.treasury.gov/sanctions-list-service" target="_blank" rel="noopener noreferrer">OFAC — SDN и другие списки</a></p>
+<p class="small"><a href="https://policy.trade.ec.europa.eu/help-exporters-and-importers/exporting-dual-use-items_en" target="_blank" rel="noopener noreferrer">ЕС — экспортный контроль dual-use</a></p>
+<p class="small">Источники нужно обновлять. Для полноценной проверки требуется нормализованный механизм импорта официальных реестров с фиксацией дат и редакций правовых актов.</p>
+</section>
+</div>
+</div>
+<footer>Invoice Risk Scanner · учебная версия 0.1. Не является юридическим, таможенным или банковским заключением. Проверяйте операции по действующим нормативным актам и внутренним политикам комплаенса.</footer>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let invoiceFile=null, demoText='', result=null, entityRows=[],goodsRows=[],demoMode=false;
+const libs={};
+function loadJs(url,globalName){if(window[globalName])return Promise.resolve(window[globalName]);if(libs[url])return libs[url];libs[url]=new Promise((resolve,reject)=>{let s=document.createElement('script');s.src=url;s.onload=()=>window[globalName]?resolve(window[globalName]):reject(new Error('Библиотека не загрузилась: '+globalName));s.onerror=()=>reject(new Error('Нет доступа к библиотеке. Проверьте интернет-соединение.'));document.head.appendChild(s)});return libs[url]}
+function status(msg){$('progress').textContent=msg;}
+function cleanText(s){return String(s||'').replace(/\u00a0/g,' ').replace(/\r/g,'').replace(/[ \t]{2,}/g,' ').trim()}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ё/g,'е').replace(/[“”«»\-_.(),\[\]\/\\]+/g,' ').replace(/\b(?:llc|ltd|inc|gmbh|ооо|ао|зао|пао|jsc|oao|limited|company|co)\b/g,' ').replace(/\s+/g,' ').trim()}
+const ru='абвгдежзийклмнопрстуфхцчшщъыьэюя',tr=['a','b','v','g','d','e','zh','z','i','y','k','l','m','n','o','p','r','s','t','u','f','h','ts','ch','sh','sch','','y','','e','yu','ya'];
+function roman(s){return [...norm(s)].map(x=>{const i=ru.indexOf(x);return i>=0?tr[i]:x}).join('')}
+function dice(a,b){a=roman(a).replace(/ /g,''),b=roman(b).replace(/ /g,'');if(!a||!b)return 0;if(a===b)return 1;if(a.length<2||b.length<2)return 0;let sets=new Map();for(let i=0;i<a.length-1;i++){const k=a.slice(i,i+2);sets.set(k,(sets.get(k)||0)+1)}let common=0;for(let i=0;i<b.length-1;i++){const k=b.slice(i,i+2),v=sets.get(k)||0;if(v){common++;sets.set(k,v-1)}}return 2*common/(a.length+b.length-2)}
+function safe(s){return String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function setFile(file){if(!file)return;if(file.size>15*1024*1024){alert('Файл больше 15 МБ. Выберите файл меньшего размера.');return}invoiceFile=file;demoText='';$('filename').textContent=`Выбран: ${file.name} (${(file.size/1024).toFixed(0)} КБ)`;$('analyzeBtn').disabled=false;status('');}
+$('invoiceInput').addEventListener('change',e=>setFile(e.target.files[0]));
+const drop=$('drop');['dragenter','dragover'].forEach(evt=>drop.addEventListener(evt,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(evt=>drop.addEventListener(evt,e=>{e.preventDefault();drop.classList.remove('drag')}));drop.addEventListener('drop',e=>setFile(e.dataTransfer.files[0]));
+$('demoBtn').addEventListener('click',()=>{invoiceFile=null;demoText='COMMERCIAL INVOICE\nInvoice No: DEMO-2026-001\nDate: 12/11/2026\nSeller: ООО Учебный поставщик\nBuyer: Example Import Ltd\nCountry of Origin: China\nDestination: Germany\nDescription: Wheat grains, non-seed\nHS Code: 1001990000\nQuantity: 12000 kg\nTotal Amount: 12400 USD';$('filename').textContent='Учебный инвойс (вымышленные реквизиты)';$('analyzeBtn').disabled=false;status('');});
+function parseDelimited(txt){const first=txt.split(/\r?\n/).find(x=>x.trim())||'';const delimiters=[';',',','\t'];const delim=delimiters.sort((a,b)=>(first.split(b).length-first.split(a).length))[0];let rows=[],cur=[],cell='',quoted=false;for(let i=0;i<txt.length;i++){let ch=txt[i];if(ch==='"'){if(quoted&&txt[i+1]==='"'){cell+='"';i++}else quoted=!quoted}else if(ch===delim&&!quoted){cur.push(cell.trim());cell=''}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&txt[i+1]==='\n')i++;cur.push(cell.trim());if(cur.some(Boolean))rows.push(cur);cur=[];cell=''}else cell+=ch;}cur.push(cell.trim());if(cur.some(Boolean))rows.push(cur);return rows;}
+function csvObjects(txt,type){const rows=parseDelimited(txt);if(!rows.length)return [];let head=rows[0].map(x=>norm(x)),col=type==='entity'?'name':'code';let hasHeader=head.some(x=>[col,'aliases','source','reference','notes','название','наименование','код','источник'].includes(x));let body=hasHeader?rows.slice(1):rows;const idx=(keys,def)=>{let k=head.findIndex(h=>keys.includes(h));return k<0?def:k};const ni=idx(type==='entity'?['name','название','наименование','entity','имя']:['code','код','hs','tnved','tn ved','cn'],0);const ali=idx(['aliases','alias','варианты','синонимы'],1);const src=idx(['source','источник','list'],type==='entity'?2:1);const ref=idx(type==='entity'?['reference','основание','url']:['notes','примечание','основание'],type==='entity'?3:2);return body.map(r=>({name:(r[ni]||'').trim(),aliases:type==='entity'?(r[ali]||''):'',source:r[src]||'',reference:r[ref]||''})).filter(r=>r.name).slice(0,150000)}
+async function readCSV(type,file){if(!file)return;try{let t=await file.text();let arr=csvObjects(t,type);if(type==='entity'){entityRows=arr;$('entityCount').textContent=`${arr.length} записей из «${file.name}»`}else{goodsRows=arr;$('goodsCount').textContent=`${arr.length} кодов из «${file.name}»`}demoMode=false;status('Перечень загружен. Перезапустите анализ инвойса.') }catch(e){alert('Ошибка чтения CSV: '+e.message)}}
+$('entityInput').addEventListener('change',e=>readCSV('entity',e.target.files[0]));$('goodsInput').addEventListener('change',e=>readCSV('goods',e.target.files[0]));
+function download(filename,body,mime){const a=document.createElement('a');const url=URL.createObjectURL(new Blob([body],{type:mime||'text/plain;charset=utf-8'}));a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+$('entityTemplate').onclick=()=>download('template_entities.csv','name;aliases;source;reference\nУчебная компания;Educational Company;ДЕМО;Вымышленная запись\n','text/csv;charset=utf-8');
+$('goodsTemplate').onclick=()=>download('template_goods.csv','code;source;notes\n1001;ДЕМО;Вымышленное ограничение для проверки работы интерфейса\n','text/csv;charset=utf-8');
+$('demoLists').onclick=()=>{demoMode=true;entityRows=[{name:'ООО Учебный поставщик',aliases:'Training Supplier',source:'ДЕМО — неофициальный список',reference:'Вымышленная запись'}];goodsRows=[{name:'1001',source:'ДЕМО — неофициальный список',reference:'Вымышленный код'}];$('entityCount').textContent='1 вымышленная запись (ДЕМО)';$('goodsCount').textContent='1 вымышленный код (ДЕМО)';$('demoWarning').textContent='ВНИМАНИЕ: используются только тестовые данные, не настоящие санкционные списки.';status('Тестовые перечни подключены. Они не имеют правовой силы.');};
+async function imageToText(blob){const Tess=await loadJs('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','Tesseract');status('OCR изображения: загрузка языковой модели…');const worker=await Tess.createWorker('eng+rus',1,{logger:m=>{if(m.status==='recognizing text')status(`OCR: ${Math.round((m.progress||0)*100)}%`);}});try{const r=await worker.recognize(blob);return r.data.text||''}finally{await worker.terminate()}}
+async function extract(file){const n=file.name.toLowerCase();if(/\.(txt|csv)$/.test(n))return await file.text();if(/\.(png|jpg|jpeg|webp)$/.test(n)||file.type.startsWith('image/'))return await imageToText(file);if(/\.(xlsx|xls)$/.test(n)){const XLSX=await loadJs('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','XLSX');const ab=await file.arrayBuffer();const wb=XLSX.read(ab,{type:'array'});return wb.SheetNames.slice(0,20).map(s=>'SHEET: '+s+'\n'+XLSX.utils.sheet_to_csv(wb.Sheets[s],{FS:' ',RS:'\n'})).join('\n')}
+if(n.endsWith('.pdf')||file.type==='application/pdf'){const pdfjs=await loadJs('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js','pdfjsLib');pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),useSystemFonts:true}).promise;let texts=[];const count=Math.min(pdf.numPages,20);for(let p=1;p<=count;p++){status(`PDF: чтение страницы ${p} из ${count}`);const pg=await pdf.getPage(p);const content=await pg.getTextContent();const items=content.items||[];let currentY=null,lines=[],line='';for(const it of items){const y=it.transform&&it.transform[5];if(currentY!==null&&Math.abs(y-currentY)>5){lines.push(line);line=''}line+=String(it.str||'')+' ';currentY=y}lines.push(line);texts.push(lines.join('\n'));}let out=texts.join('\n');if(out.replace(/\s/g,'').length<50){let lim=Math.min(pdf.numPages,4);status(`PDF-скан: OCR первых ${lim} страниц`);let pages=[];for(let p=1;p<=lim;p++){let pg=await pdf.getPage(p),vp=pg.getViewport({scale:1.7}),canvas=document.createElement('canvas');canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);await pg.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));status(`OCR страницы ${p} из ${lim}`);pages.push(await imageToText(blob));canvas.width=canvas.height=0}out=pages.join('\n');if(pdf.numPages>lim)out+='\n[OCR обработал только первые '+lim+' страниц из '+pdf.numPages+']'}else if(pdf.numPages>count)out+='\n[Текст извлечён только из первых '+count+' страниц из '+pdf.numPages+']';return out}
+throw new Error('Неподдерживаемый формат. Используйте PDF, XLSX, XLS, CSV, TXT или изображение.');}
+function getVal(lines,re){for(let i=0;i<lines.length;i++){let m=lines[i].match(re);if(m){let val=cleanText(m[1]||'');if(val.length<3&&lines[i+1])val=cleanText(lines[i+1]);return val.substring(0,150)}}return ''}
+function analyzeText(text){let lines=cleanText(text).split('\n').map(x=>x.trim()).filter(Boolean),sample=lines.join('\n');const seller=getVal(lines,/^(?:seller|supplier|exporter|shipper|продавец|поставщик|экспортер|экспортёр|отправитель)\s*(?::|\-|\u2014)\s*(.*)$/i);const buyer=getVal(lines,/^(?:buyer|importer|consignee|purchaser|покупатель|импортер|импортёр|получатель)\s*(?::|\-|\u2014)\s*(.*)$/i);const inv=getVal(lines,/^(?:invoice\s*(?:no\.?|number|#)|инвойс\s*(?:№|номер)?|счёт\s*(?:№|номер)?|счет\s*(?:№|номер)?)\s*(?::|\-|#|\u2014)?\s*(.*)$/i);let codes=new Set(),strongCodes=new Set();for(const line of lines){const re=/(?:HS\s*(?:CODE)?|HARMONIZED\s*CODE|ТН\s*ВЭД|ТНВЭД|CN\s*(?:CODE)?|COMMODITY\s*CODE|TARIFF\s*(?:CODE)?|КОД\s*(?:ТОВАРА|ТН\s*ВЭД))[\s:№#-]{0,15}((?:\d[\s.\-]?){4,10})/ig;let m;while((m=re.exec(line))!==null){let c=m[1].replace(/\D/g,'');if([4,6,8,10].includes(c.length)){codes.add(c);strongCodes.add(c)}}} // Unlabeled full-length codes are only candidates.
+let candidateCodes=new Set();for(const line of lines){const re=/(?:^|[^\d])(\d{10}|\d{8})(?=$|[^\d])/g;let m;while((m=re.exec(line))!==null){let c=m[1];let group=parseInt(c.slice(0,2),10);if(group>=1&&group<=97&&group!==77&&!codes.has(c))candidateCodes.add(c)}}
+const aliases=[
+['Россия',['russia','russian federation','россия','российская федерация']],
+['Германия',['germany','deutschland','германия']],
+['Китай',['china','prc','китай','кнр']],
+['Беларусь',['belarus','беларусь']],
+['Казахстан',['kazakhstan','казахстан']],
+['Турция',['turkey','turkiye','türkiye','турция']],
+['США',['usa','united states','сша']],
+['ОАЭ',['uae','united arab emirates','оаэ']],
+['Индия',['india','индия']],
+['Иран',['iran','иран']],
+['Сирия',['syria','сирия']],
+['КНДР',['north korea','dprk','кндр']],
+['Великобритания',['uk','united kingdom','great britain','великобритания']]
+];
+let countries=aliases.filter(([name,terms])=>terms.some(term=>new RegExp('(^|[^\\p{L}])'+term+'(?=$|[^\\p{L}])','iu').test(sample))).map(x=>x[0]);
+let currency=(sample.match(/\b(?:EUR|USD|RUB|CNY|GBP|CHF|AED|KZT|BYN)\b|\b(?:ЕВРО|ДОЛЛАР(?:ОВ|Ы)?|РУБ(?:ЛЕЙ|ЛЯ|ЛИ)?)\b/ig)||[]).slice(0,5);const amount=getVal(lines,/^(?:total\s*(?:amount|value)?|grand\s*total|итого|общая\s*стоимость|сумма\s*(?:инвойса|сч[её]та)?)(?:\s*[:\-—])?\s*(.{1,80})$/i);
+let hits=[];for(const [side,name] of [['Продавец',seller],['Покупатель',buyer]]){if(!name)continue;for(const item of entityRows){const names=[item.name,...item.aliases.split(/[|\/]/).map(a=>a.trim())].filter(Boolean);const sim=Math.max(...names.map(x=>dice(name,x)));if(sim>=.83){hits.push({type:'person',level:sim>.995?'Высокое текстовое совпадение':'Возможное совпадение',field:side,value:name,match:item.name,score:Number(sim.toFixed(2)),source:item.source||'Источник не указан',reference:item.reference||''})}}}
+for(const c of codes){for(const r of goodsRows){const target=r.name.replace(/\D/g,'');if(target.length>=4&&target.length<=10&&(c.startsWith(target)||target.startsWith(c))){hits.push({type:'goods',level:c===target?'Совпадение кода':'Совпадение по префиксу кода',field:'Товарный код',value:c,match:target,score:0,source:r.source||'Источник не указан',reference:r.reference||''})}}}
+hits.sort((a,b)=>(a.type==='person'?-1:1));return {seller,buyer,invoice:inv,amount,codes:[...codes],candidateCodes:[...candidateCodes].slice(0,20),countries,currency:[...new Set(currency)],hits:hits.slice(0,35),documentLength:sample.length,scanTime:new Date().toISOString(),lists:{entities:entityRows.length,goods:goodsRows.length,mode:demoMode?'ДЕМОНСТРАЦИЯ':'Загружены пользователем'},route:$('route').selectedOptions[0].textContent,raw:sample};}
+function render(result){$('results').classList.remove('hidden');let needs=[];
+if(!result.seller||!result.buyer)needs.push('Уточнить названия продавца и покупателя по первичным документам, проверить регистрации, идентификаторы и возможных бенефициаров.');
+if(!result.codes.length)needs.push('Код товара не обнаружен в явном виде. Запросить код ТН ВЭД/HS и описание каждой позиции.');
+if(result.candidateCodes.length)needs.push('Обнаружены числовые последовательности, похожие на товарные коды, без ясной подписи. Требуется ручная проверка.');
+if(!entityRows.length)needs.push('Не подключён актуальный санкционный список лиц. Проверка контрагентов не выполнена.');
+if(!goodsRows.length)needs.push('Не подключён актуальный список товарных ограничений. Проверка номенклатуры не выполнена.');
+needs.push('Определить применимые юрисдикции, маршрут и роли всех участников, включая банки, перевозчиков и конечного пользователя.');
+needs.push('Проверить технические характеристики и конечное использование товаров, нормы экспортного контроля, исключения и лицензии.');
+needs.push('Сверить даты и редакции нормативных актов, право собственности и контроль над контрагентами.');
+if(demoMode)needs.unshift('ДЕМО: загруженные списки вымышленные. Результат не отражает реальную санкционную ситуацию.');
+$('state').className='callout';$('state').textContent=result.hits.length?`Обнаружено ${result.hits.length} ${result.hits.length%10===1&&result.hits.length%100!==11?'совпадение':([2,3,4].includes(result.hits.length%10)&&![12,13,14].includes(result.hits.length%100)?'совпадения':'совпадений')} в ${demoMode?'демонстрационных':'загруженных'} перечнях. Это сигналы для проверки, не юридическое заключение.`:'Автоматическая проверка не установила разрешённость сделки. Отсутствие совпадений не исключает санкционных ограничений.';
+const fields=[['Инвойс',result.invoice||'Не найден'],['Продавец',result.seller||'Не найден'],['Покупатель',result.buyer||'Не найден'],['Сумма',result.amount||'Не определена'],['Коды товара',result.codes.join(', ')||'Не найдены'],['Возможные коды',result.candidateCodes.join(', ')||'Нет'],['Упоминания стран',result.countries.join(', ')||'Не определены'],['Валюты',result.currency.join(', ')||'Не определены']];$('fields').innerHTML=fields.map(([k,v])=>`<div class="kv"><div class="k">${safe(k)}</div><div class="v">${safe(v)}</div></div>`).join('');
+$('alerts').innerHTML=result.hits.length?result.hits.map(h=>`<div class="riskline"><span class="pill ${h.type==='person'?'risk':'pending'}">${safe(h.level)}</span><strong>${safe(h.field)}: ${safe(h.value)}</strong><p class="small">Запись: ${safe(h.match)} · Источник: ${safe(h.source)}${h.reference?' · '+safe(h.reference):''}${h.type==='person'?' · Сходство: '+Math.round(h.score*100)+'%':''}</p></div>`).join(''):'<p class="empty">Совпадений с подключёнными данными не найдено. Это не означает отсутствие санкций.</p>';
+$('tasks').innerHTML='<ul>'+needs.map(x=>'<li>'+safe(x)+'</li>').join('')+'</ul>';$('rawText').textContent=result.raw;
+result.todo=needs;}
+$('analyzeBtn').onclick=async()=>{const btn=$('analyzeBtn');btn.disabled=true;$('results').classList.add('hidden');$('state').textContent='Извлечение текста…';try{let txt=demoText||await extract(invoiceFile);if(!txt.trim())throw new Error('Текст не извлечён. Проверьте качество документа или попробуйте другое изображение.');status('Сопоставление полей и перечней…');result=analyzeText(txt);render(result);status(`Готово. Обработано символов: ${result.documentLength}. Проверка выполнена локально.`)}catch(e){console.error(e);$('state').textContent='Не удалось выполнить анализ: '+e.message;status('Проверьте формат, соединение и наличие текста.') }finally{btn.disabled=false}}
+$('reportBtn').onclick=()=>{if(!result)return;let output={...result};delete output.raw;download('invoice_screening_report_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(output,null,2),'application/json;charset=utf-8')};
+$('textBtn').onclick=async()=>{if(!result)return;let s='ПРЕДВАРИТЕЛЬНЫЙ АНАЛИЗ ИНВОЙСА\n'+`Продавец: ${result.seller||'не найден'}\nПокупатель: ${result.buyer||'не найден'}\nКоды: ${result.codes.join(', ')||'не найдены'}\nСовпадений с загруженными списками: ${result.hits.length}\n`+result.hits.map(h=>`${h.level}: ${h.field} ${h.value} -> ${h.match} (${h.source})`).join('\n')+'\n\nОграничение: результат не является разрешением на проведение сделки, требуется комплаенс-проверка.';try{await navigator.clipboard.writeText(s);status('Текст заключения скопирован.')}catch(e){status('Не удалось скопировать: браузер ограничил доступ к буферу обмена.')}};
+</script>
+</body>
+</html>
